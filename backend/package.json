@@ -4,7 +4,9 @@
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "migrate": "node src/db/migrate.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "mail:test": "node src/scripts/mailTest.js"
   },
   "keywords": [],
   "author": "",
@@ -15,7 +17,13 @@
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "google-auth-library": "^11.0.2",
     "jsonwebtoken": "^9.0.3",
+    "jwks-rsa": "^4.1.0",
+    "nodemailer": "^9.1.1",
     "pg": "^8.22.0"
+  },
+  "engines": {
+    "node": ">=24.3.0 <25"
   }
 }

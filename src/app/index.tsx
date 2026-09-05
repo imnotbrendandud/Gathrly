@@ -1,98 +1,143 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
+import { Image } from 'expo-image'; // Image library for displaying images
+import { useRouter } from 'expo-router'; // Navigation management
+import { StyleSheet, Text, View } from 'react-native'; // React Native libraries
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { FloatingPill } from '@/components/intro/floating-pill';
+import { GlowBackground } from '@/components/intro/glow-background';
+import { PrimaryButton } from '@/components/intro/primary-button';
+import { Brand, MaxContentWidth, Radii, Spacing } from '@/constants/theme';
 
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
-  return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
-  );
-}
+export default function WelcomeScreen() {
+  const router = useRouter(); // Initialize route navigation
 
-export default function HomeScreen() {
-  return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
+  return ( // Everything that displays on the screen
+    <View style={styles.screen}>
+      <SafeAreaView style={styles.safeArea}> {/* Keeps content within the screen boundaries of the current device*/}
+        <View style={styles.content}>
+          <View style={styles.illustration}>
+            <GlowBackground /> {/* Styling component */}
 
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
+            <View style={styles.dinnerPillRow}>
+              <FloatingPill
+                icon={require('@/assets/images/intro/calendar-pill-icon.svg')}
+                iconWidth={13.5}
+                iconHeight={15}
+                label="Dinner @ 7 PM"
+              />
+            </View>
 
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
+            <View style={styles.logoBlock}>
+              <View style={styles.logoTile}>
+                <Image
+                  source={require('@/assets/images/intro/logo-mark-white.svg')}
+                  style={styles.logoMark}
+                  contentFit="contain"
+                />
+              </View>
+              <Text style={styles.wordmark}>Gathrly</Text>
+            </View>
 
-        {Platform.OS === 'web' && <WebBadge />}
+            <View style={styles.rooftopPillRow}>
+              <FloatingPill
+                icon={require('@/assets/images/intro/pin-pill-icon.svg')}
+                label="Rooftop Bar"
+              />
+            </View>
+
+            <View style={styles.rsvpPill}>
+              <FloatingPill
+                icon={require('@/assets/images/intro/check-pill-icon.svg')}
+                label="3 RSVPs"
+              />
+            </View>
+          </View>
+
+          <View style={styles.ctas}>
+            <PrimaryButton label="Get started" onPress={() => router.push('/sign-up')} />
+            <PrimaryButton
+              label="Sign in"
+              variant="secondary"
+              onPress={() => router.push('/sign-in')} 
+            /> {/* Triggers a URL change to the sign in screen */}
+          </View>
+        </View>
       </SafeAreaView>
-    </ThemedView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
-    justifyContent: 'center',
     flexDirection: 'row',
+    justifyContent: 'center',
+    backgroundColor: '#ffffff',
+    overflow: 'hidden',
   },
   safeArea: {
     flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
     maxWidth: MaxContentWidth,
+    padding: Spacing.four,
   },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
+  content: {
     flex: 1,
-    paddingHorizontal: Spacing.four,
+    alignItems: 'center',
+    justifyContent: 'flex-end',
     gap: Spacing.four,
   },
-  title: {
+  illustration: {
+    flex: 1,
+    alignSelf: 'stretch',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.three,
+  },
+  dinnerPillRow: {
+    alignSelf: 'stretch',
+    alignItems: 'flex-end',
+    paddingHorizontal: Spacing.four,
+  },
+  logoBlock: {
+    alignItems: 'center',
+    gap: Spacing.three,
+  },
+  logoTile: {
+    width: 64,
+    height: 64,
+    borderRadius: Radii.tile,
+    backgroundColor: Brand.teal,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: Brand.teal,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.2,
+    shadowRadius: 15,
+    elevation: 8,
+  },
+  logoMark: {
+    width: 28.5,
+    height: 27,
+  },
+  wordmark: {
+    fontSize: 30,
+    lineHeight: 38,
+    fontWeight: 800,
+    color: Brand.teal,
     textAlign: 'center',
   },
-  code: {
-    textTransform: 'uppercase',
-  },
-  stepContainer: {
-    gap: Spacing.three,
+  rooftopPillRow: {
     alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
+    alignItems: 'center',
+    paddingRight: 72,
+  },
+  rsvpPill: {
+    position: 'absolute',
+    left: 0,
+    top: 227,
+  },
+  ctas: {
+    alignSelf: 'stretch',
+    gap: 10,
   },
 });
