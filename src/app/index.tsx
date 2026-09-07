@@ -13,10 +13,12 @@ export default function WelcomeScreen() {
 
   return ( // Everything that displays on the screen
     <View style={styles.screen}>
-      <SafeAreaView style={styles.safeArea}> {/* Keeps content within the screen boundaries of the current device*/}
+      {/* Keeps content within the screen boundaries of the current device */}
+      <SafeAreaView style={styles.safeArea}>
         <View style={styles.content}>
           <View style={styles.illustration}>
-            <GlowBackground /> {/* Styling component */}
+            {/* Styling component */}
+            <GlowBackground />
 
             <View style={styles.dinnerPillRow}>
               <FloatingPill
@@ -54,12 +56,7 @@ export default function WelcomeScreen() {
           </View>
 
           <View style={styles.ctas}>
-            <PrimaryButton label="Get started" onPress={() => router.push('/sign-up')} />
-            <PrimaryButton
-              label="Sign in"
-              variant="secondary"
-              onPress={() => router.push('/sign-in')} 
-            /> {/* Triggers a URL change to the sign in screen */}
+            <PrimaryButton label="Get started" onPress={() => router.push('/get-started')} />
           </View>
         </View>
       </SafeAreaView>

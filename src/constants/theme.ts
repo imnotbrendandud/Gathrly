@@ -71,6 +71,16 @@ export const Brand = {
   errorText: '#dc3d43',
   errorBorder: '#e5484d',
   pillBackground: 'rgba(255, 255, 255, 0.8)',
+  /** Quieter helper text ("A verification code will be sent…", "Or"). */
+  hintSubtle: '#a0a0a0',
+  /** Underlined text links ("Change email address"). */
+  tealDark: '#0b847a',
+  /** Hairline in the "Or" divider. */
+  divider: 'rgba(225, 191, 185, 0.5)',
+  /** Outline on the social sign-in buttons. */
+  buttonOutline: '#8f8f8f',
+  /** Fill of a code box in the error state. */
+  errorBackground: '#fff5f5',
 } as const;
 
 export const Radii = {

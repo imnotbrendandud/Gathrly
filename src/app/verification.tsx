@@ -11,21 +11,15 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BrandHeader } from '@/components/intro/brand-header';
-import { GlowBackground } from '@/components/intro/glow-background';
+import { BackButton } from '@/components/intro/back-button';
 import { PrimaryButton } from '@/components/intro/primary-button';
 import { Brand, MaxContentWidth, Radii, Spacing } from '@/constants/theme';
 
 const CODE_LENGTH = 6;
 
-function maskPhone(digits: string) {
-  const last4 = digits.slice(-4).padStart(4, '•');
-  return `+1******${last4}`;
-}
-
 export default function VerificationScreen() {
   const router = useRouter();
-  const { phone } = useLocalSearchParams<{ phone?: string }>();
+  const { email } = useLocalSearchParams<{ email?: string }>();
   const inputRef = useRef<TextInput>(null);
   const [code, setCode] = useState('');
   const [hasError, setHasError] = useState(false);
@@ -38,9 +32,9 @@ export default function VerificationScreen() {
   };
 
   const handleVerify = () => {
-    // TODO: verify the code against the backend once a phone verification
-    // endpoint exists (backend/src/routes/auth.js currently only has
-    // email/password signup & login).
+    // TODO: POST /v1/auth/email/verify { email, code } -> { token, user }.
+    // Store the token, then route. Error codes to surface: invalid_code (400),
+    // code_expired (400), too_many_attempts (429, requires a new code).
     if (code === '123456') {
       router.replace('/home');
     } else {
@@ -49,11 +43,14 @@ export default function VerificationScreen() {
   };
 
   const handleResend = () => {
-    // TODO: request a new code from the backend.
+    // TODO: POST /v1/auth/email/otp { email }. Requesting a new code
+    // invalidates the previous one server-side.
     setCode('');
     setHasError(false);
     inputRef.current?.focus();
   };
+
+  const handleBack = () => router.back();
 
   return (
     <View style={styles.screen}>
@@ -62,16 +59,16 @@ export default function VerificationScreen() {
           style={styles.flex}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <View style={styles.content}>
-            <BrandHeader />
+            <View style={styles.top}>
+              <BackButton onPress={handleBack} />
+            </View>
 
             <View style={styles.body}>
-              <GlowBackground />
-
               <View style={styles.textBlock}>
                 <Text style={styles.title}>Verification Code</Text>
                 <Text style={styles.subtitle}>
                   Enter the 6-digit verification code sent to{' '}
-                  <Text style={styles.subtitleBold}>{maskPhone(phone ?? '')}</Text>
+                  <Text style={styles.subtitleBold}>{email ?? 'your email'}</Text>
                 </Text>
               </View>
 
@@ -102,12 +99,17 @@ export default function VerificationScreen() {
 
               <View style={styles.cta}>
                 <PrimaryButton label="Verify code" onPress={handleVerify} disabled={!canVerify} />
-                <Text style={styles.hint}>
-                  Didn’t receive a code?{' '}
-                  <Text style={styles.resendLink} onPress={handleResend}>
-                    Resend code
+                <View style={styles.links}>
+                  <Text style={styles.hint}>
+                    Didn’t receive a code?{' '}
+                    <Text style={styles.resendLink} onPress={handleResend}>
+                      Resend code
+                    </Text>
                   </Text>
-                </Text>
+                  <Text style={styles.changeEmail} onPress={handleBack}>
+                    Change email address
+                  </Text>
+                </View>
               </View>
             </View>
           </View>
@@ -135,8 +137,12 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    alignItems: 'center',
     gap: Spacing.four,
+  },
+  top: {
+    alignSelf: 'stretch',
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   body: {
     flex: 1,
@@ -177,7 +183,7 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   codeBox: {
-    width: 41,
+    width: 44,
     height: 44,
     borderRadius: Radii.input,
     borderWidth: 1,
@@ -188,6 +194,7 @@ const styles = StyleSheet.create({
   },
   codeBoxError: {
     borderColor: Brand.errorBorder,
+    backgroundColor: Brand.errorBackground,
   },
   codeDigit: {
     fontSize: 14,
@@ -215,6 +222,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
   },
+  links: {
+    alignItems: 'center',
+    gap: Spacing.four,
+  },
   hint: {
     fontSize: 12,
     color: Brand.hint,
@@ -223,5 +234,11 @@ const styles = StyleSheet.create({
   resendLink: {
     fontWeight: 700,
     color: Brand.teal,
+  },
+  changeEmail: {
+    fontSize: 12,
+    color: Brand.tealDark,
+    textDecorationLine: 'underline',
+    textAlign: 'center',
   },
 });
