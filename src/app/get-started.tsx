@@ -1,6 +1,7 @@
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, StyleSheet, Text, View } from 'react-native';
+import { Keyboard, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BrandHeader } from '@/components/intro/brand-header';
@@ -10,6 +11,10 @@ import { OrDivider } from '@/components/intro/or-divider';
 import { PrimaryButton } from '@/components/intro/primary-button';
 import { SocialButton } from '@/components/intro/social-button';
 import { Brand, MaxContentWidth, Spacing } from '@/constants/theme';
+import { useAuth } from '@/contexts/auth-context';
+import { requestEmailOtp } from '@/lib/auth-api';
+import { authErrorMessage } from '@/lib/auth-errors';
+import { signInWithApple, signInWithGoogle } from '@/lib/social-auth';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -20,80 +25,143 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
  */
 export default function GetStartedScreen() {
   const router = useRouter();
+  // Bumped by "Change email address" on the verification screen so we know to
+  // wipe the field; a plain back gesture leaves it intact for typo fixes.
+  const { reset } = useLocalSearchParams<{ reset?: string }>();
   const [email, setEmail] = useState('');
+  // Which provider is mid-flight: the button in question shows progress and
+  // every other route out of this screen locks until it settles.
+  const [pending, setPending] = useState<'email' | 'google' | 'apple' | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const { signIn } = useAuth();
+
+  // Adjusting state during render is React's documented alternative to an
+  // effect here: it re-renders before committing, with no extra paint.
+  const [lastReset, setLastReset] = useState(reset);
+  if (reset !== lastReset) {
+    setLastReset(reset);
+    setEmail('');
+  }
 
   const normalizedEmail = email.trim().toLowerCase();
-  const canContinue = EMAIL_RE.test(normalizedEmail);
+  const isBusy = pending !== null;
+  const canContinue = EMAIL_RE.test(normalizedEmail) && !isBusy;
 
-  const handleContinue = () => {
-    // TODO: POST /v1/auth/email/otp { email } (always 200), then navigate.
-    router.push({ pathname: '/verification', params: { email: normalizedEmail } });
+  const handleContinue = async () => {
+    if (!canContinue) return;
+    Keyboard.dismiss();
+    setPending('email');
+    setError(null);
+    try {
+      // Answers 200 whether or not the address has an account, so reaching the
+      // next line says the code was sent — never that the account exists.
+      await requestEmailOtp(normalizedEmail);
+      router.push({ pathname: '/verification', params: { email: normalizedEmail } });
+    } catch (err) {
+      setError(authErrorMessage(err));
+    } finally {
+      setPending(null);
+    }
   };
 
-  const handleGoogle = () => {
-    // TODO: GoogleSignin.signIn() -> POST /v1/auth/google { idToken }.
-  };
-
-  const handleApple = () => {
-    // TODO: AppleAuthentication.signInAsync() -> POST /v1/auth/apple
-    // { identityToken, authorizationCode, fullName }. Always forward fullName:
-    // Apple only returns it on the very first authorization.
+  // Both providers hand back a session straight away — there is no code to
+  // enter — so this screen is where the sign-in completes.
+  const handleProvider = async (provider: 'google' | 'apple') => {
+    Keyboard.dismiss();
+    setPending(provider);
+    setError(null);
+    try {
+      const session = provider === 'google' ? await signInWithGoogle() : await signInWithApple();
+      // `null` means the user dismissed the system sheet, which is not a
+      // failure and must not leave a message on screen.
+      if (!session) return;
+      await signIn(session);
+      router.replace('/home');
+    } catch (err) {
+      setError(authErrorMessage(err));
+    } finally {
+      setPending(null);
+    }
   };
 
   return (
     <View style={styles.screen}>
       <SafeAreaView style={styles.safeArea}>
-        <KeyboardAvoidingView
-          style={styles.flex}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-          <View style={styles.content}>
-            <BrandHeader />
-
-            <View style={styles.body}>
-              <GlowBackground />
-
-              <View style={styles.textBlock}>
-                <Text style={styles.title}>Ready to get planning?</Text>
-                <Text style={styles.subtitle}>Enter your email to start planning events.</Text>
-              </View>
-
-              <LabeledInput
-                label="Email"
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoComplete="email"
-                autoCorrect={false}
-                textContentType="emailAddress"
-                returnKeyType="go"
-                onSubmitEditing={canContinue ? handleContinue : undefined}
-              />
-
-              <View style={styles.cta}>
-                <PrimaryButton label="Continue" onPress={handleContinue} disabled={!canContinue} />
-                <Text style={styles.hint}>A verification code will be sent to your email.</Text>
-              </View>
-
-              <OrDivider />
-
-              <View style={styles.social}>
-                <SocialButton
-                  icon={require('@/assets/images/intro/google-icon.svg')}
-                  label="Continue with Google"
-                  onPress={handleGoogle}
-                />
-                {Platform.OS === 'ios' && (
-                  <SocialButton
-                    icon={require('@/assets/images/intro/apple-logo.svg')}
-                    label="Continue with Apple"
-                    onPress={handleApple}
-                  />
-                )}
-              </View>
-            </View>
+        <View style={styles.content}>
+          {/* Full-bleed decor sits behind the header AND the scroll area. It
+              must stay outside the ScrollView, which clips its content and
+              would otherwise box the glow in below the logo. */}
+          <View style={styles.decor} pointerEvents="none">
+            <GlowBackground />
           </View>
-        </KeyboardAvoidingView>
+
+          {/* Tapping the fixed header also dismisses the keyboard; the rest
+              of the screen is covered by keyboardShouldPersistTaps below. */}
+          <Pressable accessible={false} onPress={Keyboard.dismiss}>
+            <BrandHeader />
+          </Pressable>
+
+          {/* Tracks the keyboard frame-by-frame instead of snapping once it
+              has finished opening, and scrolls the focused field into view. */}
+          <KeyboardAwareScrollView
+            style={styles.flex}
+            contentContainerStyle={styles.scrollContent}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="on-drag"
+            showsVerticalScrollIndicator={false}
+            bounces={false}
+            bottomOffset={Spacing.four}>
+            <View style={styles.textBlock}>
+              <Text style={styles.title}>Ready to get planning?</Text>
+              <Text style={styles.subtitle}>Enter your email to start planning events.</Text>
+            </View>
+
+            <LabeledInput
+              label="Email"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoComplete="email"
+              autoCorrect={false}
+              textContentType="emailAddress"
+              returnKeyType="go"
+              onSubmitEditing={handleContinue}
+            />
+
+            <View style={styles.cta}>
+              <PrimaryButton
+                label={pending === 'email' ? 'Sending code…' : 'Continue'}
+                onPress={handleContinue}
+                disabled={!canContinue}
+              />
+              {error ? (
+                <Text style={styles.errorText}>{error}</Text>
+              ) : (
+                <Text style={styles.hint}>A verification code will be sent to your email.</Text>
+              )}
+            </View>
+
+            <OrDivider />
+
+            <View style={styles.social}>
+              <SocialButton
+                icon={require('@/assets/images/intro/google-icon.svg')}
+                label={pending === 'google' ? 'Signing in…' : 'Continue with Google'}
+                onPress={() => handleProvider('google')}
+                disabled={isBusy}
+              />
+              {Platform.OS === 'ios' && (
+                <SocialButton
+                  icon={require('@/assets/images/intro/apple-logo.svg')}
+                  label={pending === 'apple' ? 'Signing in…' : 'Continue with Apple'}
+                  onPress={() => handleProvider('apple')}
+                  disabled={isBusy}
+                />
+              )}
+            </View>
+          </KeyboardAwareScrollView>
+        </View>
       </SafeAreaView>
     </View>
   );
@@ -120,9 +188,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.four,
   },
-  body: {
-    flex: 1,
-    alignSelf: 'stretch',
+  // Spills past the content box on purpose; `screen` clips it.
+  decor: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  scrollContent: {
+    flexGrow: 1,
     alignItems: 'center',
     justifyContent: 'center',
     gap: Spacing.four,
@@ -153,6 +228,11 @@ const styles = StyleSheet.create({
   hint: {
     fontSize: 12,
     color: Brand.hintSubtle,
+    textAlign: 'center',
+  },
+  errorText: {
+    fontSize: 12,
+    color: Brand.errorText,
     textAlign: 'center',
   },
   social: {

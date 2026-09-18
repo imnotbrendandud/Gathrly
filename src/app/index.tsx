@@ -1,5 +1,5 @@
 import { Image } from 'expo-image'; // Image library for displaying images
-import { useRouter } from 'expo-router'; // Navigation management
+import { Redirect, useRouter } from 'expo-router'; // Navigation management
 import { StyleSheet, Text, View } from 'react-native'; // React Native libraries
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -7,9 +7,17 @@ import { FloatingPill } from '@/components/intro/floating-pill';
 import { GlowBackground } from '@/components/intro/glow-background';
 import { PrimaryButton } from '@/components/intro/primary-button';
 import { Brand, MaxContentWidth, Radii, Spacing } from '@/constants/theme';
+import { useAuth } from '@/contexts/auth-context';
 
 export default function WelcomeScreen() {
   const router = useRouter(); // Initialize route navigation
+  const { isRestoring, isSignedIn } = useAuth();
+
+  // The splash overlay is still on top for this frame, so rendering nothing
+  // while the stored session is checked avoids showing a signed-in user the
+  // welcome screen and then yanking it away.
+  if (isRestoring) return null;
+  if (isSignedIn) return <Redirect href="/home" />;
 
   return ( // Everything that displays on the screen
     <View style={styles.screen}>
