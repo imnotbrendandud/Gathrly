@@ -81,12 +81,65 @@ export const Brand = {
   buttonOutline: '#8f8f8f',
   /** Fill of a code box in the error state. */
   errorBackground: '#fff5f5',
+
+  // Home screen (Figma "Organizer" → Home). Names follow the Figma variables.
+  /** Screen background behind the cards. */
+  pageBackground: '#f7fbfb',
+  /** Cards and outlined buttons. */
+  surface: '#ffffff',
+  /** color6: card and button outline. */
+  border: '#e2e2e2',
+  /** color7: hairlines inside a card and above the nav bar. */
+  hairline: '#dbdbdb',
+  /** color8: outline of an inactive filter chip. */
+  chipBorder: '#c7c7c7',
+  /** color2: fill of an inactive filter chip; text on an active one. */
+  chipBackground: '#f8f8f8',
+  /** color1: bottom navigation bar. */
+  navBackground: '#fcfcfc',
+  /** color11: secondary text and inactive nav items. */
+  textMuted: '#6f6f6f',
+  /** Date line on an event card. */
+  textDate: '#5d605f',
+  /** Green/green9: RSVP confirmed. */
+  success: '#30a46c',
+  /** Yellow/yellow11: a response is still needed. */
+  warning: '#946800',
+
+  /** color4: fill of a quiet button, e.g. "Create an event" in an empty state. */
+  subtleFill: '#ededed',
+  /** Title on a compact event card (one you're attending). */
+  cardTitle: '#333333',
+
+  // RSVP status chips and the "Confirm by" alert on an event card.
+  /** Green/green4, green10, green11: "Going". */
+  successFill: '#ddf3e4',
+  successBorder: '#299764',
+  successText: '#18794e',
+  /** Gray/gray4, gray9, gray11: "Maybe", "Invited". */
+  neutralFill: '#ededed',
+  neutralBorder: '#8f8f8f',
+  neutralText: '#6f6f6f',
+  /** Yellow/yellow2: behind the "Confirm by" alert (its text and icon use `warning`). */
+  warningFill: '#fffce8',
+
+  // Notifications screen.
+  /** color4: track of the Events / Invites segmented control. */
+  segmentedTrack: '#ededed',
+  /** color8: the selected segment. */
+  segmentedSelected: '#c7c7c7',
+  /** Unread dot on the bell (the Figma badge). */
+  badge: '#f24236',
 } as const;
 
 export const Radii = {
   input: 9,
   tile: 16,
   pill: 9999,
+  /** Event cards. */
+  card: 10,
+  /** Outlined action buttons (Drafts, Past Events). */
+  button: 7,
 } as const;
 
 export const Spacing = {

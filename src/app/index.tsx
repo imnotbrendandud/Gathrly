@@ -34,6 +34,8 @@ export default function WelcomeScreen() {
                 iconWidth={13.5}
                 iconHeight={15}
                 label="Dinner @ 7 PM"
+                hoverDuration={2800}
+                hoverPhase={0.15}
               />
             </View>
 
@@ -52,6 +54,8 @@ export default function WelcomeScreen() {
               <FloatingPill
                 icon={require('@/assets/images/intro/pin-pill-icon.svg')}
                 label="Rooftop Bar"
+                hoverDuration={3300}
+                hoverPhase={0.7}
               />
             </View>
 
@@ -59,6 +63,8 @@ export default function WelcomeScreen() {
               <FloatingPill
                 icon={require('@/assets/images/intro/check-pill-icon.svg')}
                 label="3 RSVPs"
+                hoverDuration={3000}
+                hoverPhase={0.45}
               />
             </View>
           </View>
