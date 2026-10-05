@@ -57,6 +57,24 @@ export function formatShortDate(iso: string): string {
   return `${MONTHS[date.getMonth()]} ${date.getDate()}`;
 }
 
+const FULL_WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+/** "5:00 PM" */
+export function formatClockTime(date: Date): string {
+  const hour12 = date.getHours() % 12 === 0 ? 12 : date.getHours() % 12;
+  return `${hour12}:${pad(date.getMinutes())} ${date.getHours() >= 12 ? 'PM' : 'AM'}`;
+}
+
+/** "Sunday, Feb 6 at 5:00 PM" — the Date and RSVP Deadline fields in Create Event. */
+export function formatLongDateTime(date: Date): string {
+  return `${FULL_WEEKDAYS[date.getDay()]}, ${MONTHS[date.getMonth()]} ${date.getDate()} at ${formatClockTime(date)}`;
+}
+
+/** "Feb 6, 5:00 PM" — the narrow start / end fields in the date sheet. */
+export function formatShortDateTime(date: Date): string {
+  return `${MONTHS[date.getMonth()]} ${date.getDate()}, ${formatClockTime(date)}`;
+}
+
 /** "18 of 24 Going", or "18 Going" with no cap. */
 export function formatGoingCount(event: EventSummary): string {
   return event.capacity === null

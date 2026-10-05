@@ -15,7 +15,8 @@ import { Brand } from '@/constants/theme';
 
 /**
  * The bottom bar from the Figma designs (Home / Create / Profile). Shared by the
- * tab layout and by screens that sit outside it but still show the bar.
+ * tab layout and by screens that sit outside it but still show the bar. Create
+ * isn't a tab: it opens the Create Event form over whatever is showing.
  */
 export const NAV_ITEMS = [
   {
@@ -76,7 +77,9 @@ export function DetachedNavBar() {
           icon={item.icon}
           iconDrawnAs={item.iconDrawnAs}
           selected={item.name === 'home'}
-          onPress={() => router.dismissTo(item.href)}
+          onPress={() =>
+            item.name === 'create' ? router.push(item.href) : router.dismissTo(item.href)
+          }
         />
       ))}
     </NavBar>

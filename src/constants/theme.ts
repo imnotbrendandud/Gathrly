@@ -130,6 +130,18 @@ export const Brand = {
   segmentedSelected: '#c7c7c7',
   /** Unread dot on the bell (the Figma badge). */
   badge: '#f24236',
+
+  // Create Event form and its sheets.
+  /** color1: fill of a text field, select or list row. */
+  fieldBackground: '#fcfcfc',
+  /** color9: outline of a field that has a value. */
+  fieldBorderFilled: '#8f8f8f',
+  /** color3: track of a switch that is off. */
+  switchOffFill: '#f3f3f3',
+  /** overlay/black/black10: dims the screen behind a bottom sheet. */
+  overlay: 'rgba(0, 0, 0, 0.48)',
+  /** color10: hours and minutes above and below the selected time. */
+  wheelText: '#858585',
 } as const;
 
 export const Radii = {
@@ -140,6 +152,10 @@ export const Radii = {
   card: 10,
   /** Outlined action buttons (Drafts, Past Events). */
   button: 7,
+  /** Selects, list groups and small buttons in the Create Event form. */
+  select: 5,
+  /** Top corners of a bottom sheet. */
+  sheet: 24,
 } as const;
 
 export const Spacing = {

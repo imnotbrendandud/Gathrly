@@ -115,7 +115,7 @@ export default function HomeScreen() {
                 ? {
                     label: 'Create an event',
                     icon: require('@/assets/images/home/plus.svg'),
-                    onPress: () => router.navigate('/create'),
+                    onPress: () => router.push('/create'),
                   }
                 : undefined
             }

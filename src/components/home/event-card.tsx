@@ -1,5 +1,6 @@
 import { Image } from 'expo-image';
-import { StyleSheet, Text, View, type ImageSourcePropType } from 'react-native';
+import { useRouter } from 'expo-router';
+import { Pressable, StyleSheet, Text, View, type ImageSourcePropType } from 'react-native';
 
 import { Avatar } from '@/components/avatar';
 import { StatusChip } from '@/components/home/status-chip';
@@ -118,14 +119,18 @@ function PastCard({ event }: { event: EventSummary }) {
 
 /** Drafts: what has been filled in so far, with TBD for the rest. */
 function DraftCard({ event }: { event: EventSummary }) {
+  const router = useRouter();
   const date = formatEventDate(event.startsAt);
   const location = event.location ?? TO_BE_DECIDED;
 
+  // Tapping a draft reopens it in the Create Event form to finish or publish.
   return (
-    <View
-      accessible
+    <Pressable
+      accessibilityRole="button"
       accessibilityLabel={`${event.title}. ${date}. ${location}`}
-      style={[styles.card, styles.listCard]}>
+      accessibilityHint="Opens the draft to finish it"
+      onPress={() => router.push({ pathname: '/create', params: { draftId: event.id } })}
+      style={({ pressed }) => [styles.card, styles.listCard, pressed && styles.pressed]}>
       <View style={styles.details}>
         <Text style={styles.title} numberOfLines={2}>
           {event.title}
@@ -135,7 +140,7 @@ function DraftCard({ event }: { event: EventSummary }) {
           <InfoRow icon={PIN_ICON} text={location} color={Brand.textMuted} />
         </View>
       </View>
-    </View>
+    </Pressable>
   );
 }
 
@@ -176,6 +181,9 @@ const styles = StyleSheet.create({
     gap: 16,
     padding: 16,
     borderRadius: Radii.card,
+  },
+  pressed: {
+    opacity: 0.7,
   },
   // Past Events and Drafts: tighter vertical padding.
   listCard: {
