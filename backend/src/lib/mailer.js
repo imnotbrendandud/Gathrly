@@ -1,5 +1,6 @@
 const nodemailer = require('nodemailer');
 const env = require('../config/env');
+const { renderOtpEmail } = require('./otpEmail');
 
 let transporter;
 
@@ -31,16 +32,8 @@ function getTransporter() {
 }
 
 async function sendOtpEmail(to, code) {
-  const minutes = env.otp.ttlMinutes;
-  await getTransporter().sendMail({
-    from: env.email.from,
-    to,
-    subject: `Your Gathrly verification code: ${code}`,
-    text: `Your Gathrly verification code is ${code}. It expires in ${minutes} minutes.\n\nIf you didn't request this, you can ignore this email.`,
-    html: `<p>Your Gathrly verification code is:</p>
-<p style="font-size:28px;font-weight:700;letter-spacing:4px">${code}</p>
-<p>It expires in ${minutes} minutes. If you didn't request this, you can ignore this email.</p>`,
-  });
+  const { subject, text, html, attachments } = renderOtpEmail({ code, minutes: env.otp.ttlMinutes });
+  await getTransporter().sendMail({ from: env.email.from, to, subject, text, html, attachments });
 }
 
 /**
