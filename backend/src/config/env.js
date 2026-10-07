@@ -51,6 +51,13 @@ module.exports = {
     from: process.env.EMAIL_FROM || 'Gathrly <no-reply@gathrly.app>',
   },
 
+  // Location search in the Create Event form. Photon (OpenStreetMap data) needs
+  // no key; point this at another Photon-compatible endpoint to switch.
+  places: {
+    searchUrl: process.env.PLACES_SEARCH_URL || 'https://photon.komoot.io/api/',
+    userAgent: process.env.PLACES_USER_AGENT || 'Gathrly/1.0 (dev)',
+  },
+
   otp: {
     ttlMinutes: Number(process.env.OTP_TTL_MINUTES || 10),
     maxAttempts: Number(process.env.OTP_MAX_ATTEMPTS || 5),

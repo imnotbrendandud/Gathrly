@@ -5,9 +5,10 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BackButton } from '@/components/intro/back-button';
+import { CodeBox } from '@/components/intro/code-box';
 import { PrimaryButton } from '@/components/intro/primary-button';
 import { useCountdown } from '@/hooks/use-countdown';
-import { Brand, MaxContentWidth, Radii, Spacing } from '@/constants/theme';
+import { Brand, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useAuth } from '@/contexts/auth-context';
 import { ApiError } from '@/lib/api';
 import { requestEmailOtp, verifyEmailOtp } from '@/lib/auth-api';
@@ -28,6 +29,9 @@ export default function VerificationScreen() {
   const [error, setError] = useState<string | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
   const [isResending, setIsResending] = useState(false);
+  // Whether the hidden input has the keyboard, so the boxes only show a
+  // position while the user can actually type.
+  const [isFocused, setIsFocused] = useState(false);
   const { signIn } = useAuth();
   // Only set to force a select-all after a rejection; `undefined` hands
   // selection control back to the platform.
@@ -37,6 +41,12 @@ export default function VerificationScreen() {
   const resend = useCountdown();
 
   const canVerify = code.length === CODE_LENGTH && !isVerifying && !lockout.isActive;
+
+  // Where the next digit goes: the first empty box, or the last one once the
+  // code is full (a further digit is ignored; backspace clears that box).
+  const activeIndex = Math.min(code.length, CODE_LENGTH - 1);
+  // After a rejected code the whole code is selected, so any key replaces it.
+  const isAllSelected = selection !== undefined;
 
   const handleChange = (value: string) => {
     setSelection(undefined);
@@ -164,16 +174,20 @@ export default function VerificationScreen() {
             <View style={styles.codeSection}>
               <Pressable style={styles.codeRow} onPress={() => inputRef.current?.focus()}>
                 {Array.from({ length: CODE_LENGTH }, (_, i) => (
-                  <View key={i} style={[styles.codeBox, error && styles.codeBoxError]}>
-                    <Text style={[styles.codeDigit, error && styles.codeDigitError]}>
-                      {code[i] ?? ''}
-                    </Text>
-                  </View>
+                  <CodeBox
+                    key={i}
+                    digit={code[i] ?? ''}
+                    active={isFocused && i === activeIndex}
+                    selected={isFocused && isAllSelected}
+                    error={!!error}
+                  />
                 ))}
                 <TextInput
                   ref={inputRef}
                   value={code}
                   onChangeText={handleChange}
+                  onFocus={() => setIsFocused(true)}
+                  onBlur={() => setIsFocused(false)}
                   selection={selection}
                   keyboardType="number-pad"
                   autoComplete="one-time-code"
@@ -277,27 +291,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     gap: Spacing.two,
-  },
-  codeBox: {
-    width: 44,
-    height: 44,
-    borderRadius: Radii.input,
-    borderWidth: 1,
-    borderColor: Brand.inputBorder,
-    backgroundColor: Brand.inputBackground,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  codeBoxError: {
-    borderColor: Brand.errorBorder,
-    backgroundColor: Brand.errorBackground,
-  },
-  codeDigit: {
-    fontSize: 14,
-    color: Brand.ink,
-  },
-  codeDigitError: {
-    color: Brand.errorText,
   },
   hiddenInput: {
     position: 'absolute',

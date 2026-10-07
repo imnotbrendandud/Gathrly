@@ -10,6 +10,7 @@
     "ios": {
       "icon": "./assets/expo.icon",
       "bundleIdentifier": "com.gathrly.app",
+      "appleTeamId": "Q728V83X3Z",
       "usesAppleSignIn": true
     },
     "android": {
@@ -50,7 +51,8 @@
           "launchMode": "most-recent"
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      "./plugins/with-no-script-sandboxing"
     ],
     "experiments": {
       "typedRoutes": true,

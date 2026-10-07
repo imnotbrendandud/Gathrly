@@ -1,4 +1,4 @@
-import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
+import Constants, { ExecutionEnvironment } from 'expo-constants';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { Platform } from 'react-native';
 
@@ -19,7 +19,25 @@ const GOOGLE_IOS_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID;
 
 let googleConfigured = false;
 
-function configureGoogle() {
+type GoogleModule = typeof import('@react-native-google-signin/google-signin');
+
+/**
+ * Loaded lazily: the package resolves a native module at import time and
+ * throws when it is missing (Expo Go), which would take down every screen
+ * that imports this file rather than just the Google button.
+ */
+function loadGoogle(): GoogleModule {
+  if (Constants.executionEnvironment === ExecutionEnvironment.StoreClient) {
+    throw new ApiError(
+      0,
+      'google_unavailable_in_expo_go',
+      'Google Sign-In needs a development build and does not work in Expo Go.'
+    );
+  }
+  return require('@react-native-google-signin/google-signin');
+}
+
+function configureGoogle({ GoogleSignin }: GoogleModule) {
   if (googleConfigured) return;
   if (!GOOGLE_WEB_CLIENT_ID) {
     // Mirrors the backend's own 503 code so screens map one message.
@@ -39,7 +57,9 @@ function configureGoogle() {
 }
 
 export async function signInWithGoogle(): Promise<Session | null> {
-  configureGoogle();
+  const google = loadGoogle();
+  const { GoogleSignin, statusCodes } = google;
+  configureGoogle(google);
 
   if (Platform.OS === 'android') {
     await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });

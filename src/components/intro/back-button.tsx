@@ -4,7 +4,7 @@ import { Pressable, StyleSheet } from 'react-native';
 import { Radii } from '@/constants/theme';
 
 /** 44px square back affordance with the Lucide arrow-left glyph from the Figma designs. */
-export function BackButton({ onPress }: { onPress?: () => void }) {
+export function BackButton({ onPress, color }: { onPress?: () => void; color?: string }) {
   return (
     <Pressable
       accessibilityRole="button"
@@ -16,6 +16,7 @@ export function BackButton({ onPress }: { onPress?: () => void }) {
         source={require('@/assets/images/intro/arrow-left.svg')}
         style={styles.icon}
         contentFit="contain"
+        tintColor={color}
       />
     </Pressable>
   );

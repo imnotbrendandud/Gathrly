@@ -45,19 +45,26 @@ export const NETWORK_ERROR = 'network_error';
 export const TIMEOUT_ERROR = 'timeout';
 
 type RequestOptions = {
-  method?: 'GET' | 'POST';
+  method?: 'GET' | 'POST' | 'PUT';
   body?: unknown;
   /** Bearer token for protected routes (`/v1/me`). */
   token?: string | null;
+  /** Lets the caller give up on a request it no longer needs, e.g. a stale search. */
+  signal?: AbortSignal;
 };
 
+/** Thrown when the caller's own `signal` aborted the request. */
+export const ABORTED_ERROR = 'aborted';
+
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { method = 'GET', body, token } = options;
+  const { method = 'GET', body, token, signal } = options;
 
   // AbortSignal.timeout() is not available on every RN engine, so drive the
   // controller manually.
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  const abortFromCaller = () => controller.abort();
+  signal?.addEventListener('abort', abortFromCaller);
 
   let response: Response;
   try {
@@ -72,12 +79,16 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
       signal: controller.signal,
     });
   } catch {
+    if (signal?.aborted) {
+      throw new ApiError(0, ABORTED_ERROR, 'The request was cancelled.');
+    }
     if (controller.signal.aborted) {
       throw new ApiError(0, TIMEOUT_ERROR, 'The server took too long to respond.');
     }
     throw new ApiError(0, NETWORK_ERROR, `Could not reach the server at ${API_BASE_URL}.`);
   } finally {
     clearTimeout(timeout);
+    signal?.removeEventListener('abort', abortFromCaller);
   }
 
   // A proxy or crashed process can answer with HTML, so never assume JSON.

@@ -26,6 +26,8 @@ export function authErrorMessage(err: unknown): string {
     case 'google_not_configured':
     case 'apple_not_configured':
       return 'That sign-in option isn’t set up yet.';
+    case 'google_unavailable_in_expo_go':
+      return err.message;
     case 'email_required':
       return 'That account did not share an email address, which we need to sign you in.';
     default:

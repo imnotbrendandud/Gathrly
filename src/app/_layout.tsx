@@ -5,6 +5,7 @@ import { KeyboardProvider } from 'react-native-keyboard-controller';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import { AuthProvider } from '@/contexts/auth-context';
+import { ToastProvider } from '@/contexts/toast-context';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -17,13 +18,23 @@ export default function RootLayout() {
       {/* Drives the keyboard-synced animations used by KeyboardAwareScrollView. */}
       <KeyboardProvider>
         <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-          <AnimatedSplashOverlay />
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="index" />
-            <Stack.Screen name="get-started" />
-            <Stack.Screen name="verification" />
-            <Stack.Screen name="(tabs)" />
-          </Stack>
+          <ToastProvider>
+            <AnimatedSplashOverlay />
+            <Stack screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="index" />
+              <Stack.Screen name="get-started" />
+              <Stack.Screen name="verification" />
+              <Stack.Screen name="(tabs)" />
+              {/* Closing goes through the X so unsaved edits can be offered as a draft. */}
+              <Stack.Screen
+                name="create"
+                options={{
+                  presentation: 'fullScreenModal',
+                  gestureEnabled: false,
+                }}
+              />
+            </Stack>
+          </ToastProvider>
         </ThemeProvider>
       </KeyboardProvider>
     </AuthProvider>

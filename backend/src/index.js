@@ -3,6 +3,9 @@ const express = require('express');
 const cors = require('cors');
 const pool = require('./db/pool');
 const authRouter = require('./routes/auth');
+const eventsRouter = require('./routes/events');
+const notificationsRouter = require('./routes/notifications');
+const placesRouter = require('./routes/places');
 const authenticate = require('./middleware/authenticate');
 const { publicUser } = require('./services/sessionService');
 const { getUserById } = require('./services/identityService');
@@ -20,6 +23,9 @@ app.get('/health', async (req, res) => {
 });
 
 app.use('/v1/auth', authRouter);
+app.use('/v1/events', eventsRouter);
+app.use('/v1/notifications', notificationsRouter);
+app.use('/v1/places', placesRouter);
 
 app.get('/v1/me', authenticate, async (req, res) => {
   const user = await getUserById(req.user.id);
