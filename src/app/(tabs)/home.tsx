@@ -83,7 +83,7 @@ export default function HomeScreen() {
           />
           <ActionButton
             icon={require('@/assets/images/home/history.svg')}
-            label="Past events"
+            label="Past Events"
             onPress={() => router.push('/events/past')}
           />
         </View>
@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 20,
     color: Brand.ink,
   },
   chips: {
